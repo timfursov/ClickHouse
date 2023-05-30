@@ -860,11 +860,14 @@ void QueryFuzzer::notifyQueryFailed(ASTPtr ast)
         }
     };
 
-    if (const auto * create = ast->as<ASTCreateQuery>())
-        remove_fuzzed_table(create->getTable());
+    if (ast)
+    {
+        if (const auto * create = ast->as<ASTCreateQuery>())
+            remove_fuzzed_table(create->getTable());
 
-    if (const auto * insert = ast->as<ASTInsertQuery>())
-        remove_fuzzed_table(insert->getTable());
+        if (const auto * insert = ast->as<ASTInsertQuery>())
+            remove_fuzzed_table(insert->getTable());
+    }
 }
 
 void QueryFuzzer::fuzz(ASTs & asts)
