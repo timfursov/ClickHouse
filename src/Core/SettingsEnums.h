@@ -31,7 +31,7 @@ DECLARE_SETTING_ENUM(LoadBalancing)
 
 DECLARE_SETTING_ENUM(JoinStrictness)
 
-DECLARE_SETTING_MULTI_ENUM(JoinAlgorithm)
+DECLARE_SETTING_MULTI_ENUM_ORDERED(JoinAlgorithm)
 
 
 /// Which rows should be included in TOTALS.

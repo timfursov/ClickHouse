@@ -102,3 +102,27 @@ private:
 
     static constexpr StorageType toBitFlag(EnumType v) { return StorageType{1} << static_cast<StorageType>(v); }
 };
+
+template <typename EnumTypeT>
+struct MultiEnumOrdered
+{
+    using StorageType = std::vector<EnumTypeT>;
+    using EnumType = EnumTypeT;
+
+    MultiEnumOrdered() = default;
+    explicit MultiEnumOrdered(EnumType v) { set(v); }
+    explicit MultiEnumOrdered(StorageType v) : values(std::move(v)) {}
+
+    void set(EnumType value)
+    {
+        values.push_back(value);
+    }
+
+    StorageType getValue() const
+    {
+        return values;
+    }
+
+private:
+    StorageType values;
+};

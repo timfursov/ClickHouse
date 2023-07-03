@@ -307,7 +307,6 @@ std::shared_ptr<TableJoin> JoinedTables::makeTableJoin(const ASTSelectQuery & se
         return {};
 
     auto settings = context->getSettingsRef();
-    MultiEnum<JoinAlgorithm> join_algorithm = settings.join_algorithm;
     auto table_join = std::make_shared<TableJoin>(settings, context->getGlobalTemporaryVolume());
 
     const ASTTablesInSelectQueryElement * ast_join = select_query_.join();
@@ -316,6 +315,9 @@ std::shared_ptr<TableJoin> JoinedTables::makeTableJoin(const ASTSelectQuery & se
     /// TODO This syntax does not support specifying a database name.
     if (table_to_join.database_and_table_name)
     {
+        std::vector<JoinAlgorithm> join_algorithm = settings.join_algorithm;
+        bool direct_join_enabled = std::find(join_algorithm.begin(), join_algorithm.end(), JoinAlgorithm::DIRECT) != join_algorithm.end();
+
         auto joined_table_id = context->resolveStorageID(table_to_join.database_and_table_name);
         StoragePtr storage = DatabaseCatalog::instance().tryGetTable(joined_table_id, context);
         if (storage)
@@ -326,7 +328,7 @@ std::shared_ptr<TableJoin> JoinedTables::makeTableJoin(const ASTSelectQuery & se
             }
 
             if (auto storage_dict = std::dynamic_pointer_cast<StorageDictionary>(storage);
-                storage_dict && join_algorithm.isSet(JoinAlgorithm::DIRECT))
+                storage_dict && direct_join_enabled)
             {
                 FunctionDictHelper dictionary_helper(context);
 
@@ -343,7 +345,7 @@ std::shared_ptr<TableJoin> JoinedTables::makeTableJoin(const ASTSelectQuery & se
             }
 
             if (auto storage_kv = std::dynamic_pointer_cast<IKeyValueEntity>(storage);
-                storage_kv && join_algorithm.isSet(JoinAlgorithm::DIRECT))
+                storage_kv && direct_join_enabled)
             {
                 table_join->setStorageJoin(storage_kv);
             }

@@ -539,12 +539,93 @@ void SettingFieldMultiEnum<EnumT, Traits>::readBinary(ReadBuffer & in)
     parseFromString(SettingFieldEnumHelpers::readBinary(in));
 }
 
-/// NOLINTNEXTLINE
-#define DECLARE_SETTING_MULTI_ENUM(ENUM_TYPE) \
-    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE)
+// List of enums, order is important.
+template <typename Enum, typename Traits>
+struct SettingFieldMultiEnumOrdered
+{
+    using EnumType = Enum;
+    using ValueType = std::vector<Enum>;
+
+    ValueType value;
+    bool changed = false;
+
+    explicit SettingFieldMultiEnumOrdered(ValueType v = ValueType{}) : value{v} {}
+    explicit SettingFieldMultiEnumOrdered(EnumType e) : value{e} {}
+    explicit SettingFieldMultiEnumOrdered(const Field & f) : value(parseValueFromString(f.safeGet<const String &>())) {}
+
+    operator ValueType() const { return value; } /// NOLINT
+    explicit operator Field() const { return toString(); }
+
+    SettingFieldMultiEnumOrdered & operator= (ValueType x) { changed = true; value = x; return *this; }
+    SettingFieldMultiEnumOrdered & operator= (const Field & x) { parseFromString(x.safeGet<const String &>()); return *this; }
+
+    String toString() const
+    {
+        static const String separator = ",";
+        String result;
+        for (const auto & v : value)
+        {
+            result += Traits::toString(v);
+            result += separator;
+        }
+
+        if (!result.empty())
+            result.erase(result.size() - separator.size());
+
+        return result;
+    }
+    void parseFromString(const String & str) { *this = parseValueFromString(str); }
+
+    void writeBinary(WriteBuffer & out) const;
+    void readBinary(ReadBuffer & in);
+
+private:
+    static ValueType parseValueFromString(const std::string_view str)
+    {
+        static const String separators=", ";
+
+        ValueType result;
+
+        //to avoid allocating memory on substr()
+        const std::string_view str_view{str};
+
+        auto value_start = str_view.find_first_not_of(separators);
+        while (value_start != std::string::npos)
+        {
+            auto value_end = str_view.find_first_of(separators, value_start + 1);
+            if (value_end == std::string::npos)
+                value_end = str_view.size();
+
+            result.push_back(Traits::fromString(str_view.substr(value_start, value_end - value_start)));
+            value_start = str_view.find_first_not_of(separators, value_end);
+        }
+
+        return result;
+    }
+};
+
+template <typename EnumT, typename Traits>
+void SettingFieldMultiEnumOrdered<EnumT, Traits>::writeBinary(WriteBuffer & out) const
+{
+    SettingFieldEnumHelpers::writeBinary(toString(), out);
+}
+
+template <typename EnumT, typename Traits>
+void SettingFieldMultiEnumOrdered<EnumT, Traits>::readBinary(ReadBuffer & in)
+{
+    parseFromString(SettingFieldEnumHelpers::readBinary(in));
+}
 
 /// NOLINTNEXTLINE
-#define DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, NEW_NAME) \
+#define DECLARE_SETTING_MULTI_ENUM(ENUM_TYPE) \
+    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE, )
+
+/// NOLINTNEXTLINE
+#define DECLARE_SETTING_MULTI_ENUM_ORDERED(ENUM_TYPE) \
+    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE, Ordered)
+
+/// NOLINTNEXTLINE
+#define DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, NEW_NAME, IS_ORDERED) \
     struct SettingField##NEW_NAME##Traits \
     { \
         using EnumType = ENUM_TYPE; \
@@ -554,7 +635,7 @@ void SettingFieldMultiEnum<EnumT, Traits>::readBinary(ReadBuffer & in)
         static EnumType fromString(std::string_view str); \
     }; \
     \
-    using SettingField##NEW_NAME = SettingFieldMultiEnum<ENUM_TYPE, SettingField##NEW_NAME##Traits>;
+    using SettingField##NEW_NAME = SettingFieldMultiEnum##IS_ORDERED<ENUM_TYPE, SettingField##NEW_NAME##Traits>;
 
 /// NOLINTNEXTLINE
 #define IMPLEMENT_SETTING_MULTI_ENUM(ENUM_TYPE, ERROR_CODE_FOR_UNEXPECTED_NAME, ...) \
@@ -565,13 +646,6 @@ void SettingFieldMultiEnum<EnumT, Traits>::readBinary(ReadBuffer & in)
     IMPLEMENT_SETTING_ENUM(NEW_NAME, ERROR_CODE_FOR_UNEXPECTED_NAME, __VA_ARGS__)\
     size_t SettingField##NEW_NAME##Traits::getEnumSize() {\
         return std::initializer_list<std::pair<const char*, NEW_NAME>> __VA_ARGS__ .size();\
-    }
-
-/// NOLINTNEXTLINE
-#define IMPLEMENT_SETTING_MULTI_AUTO_ENUM(NEW_NAME, ERROR_CODE_FOR_UNEXPECTED_NAME) \
-    IMPLEMENT_SETTING_AUTO_ENUM(NEW_NAME, ERROR_CODE_FOR_UNEXPECTED_NAME)\
-    size_t SettingField##NEW_NAME##Traits::getEnumSize() {\
-        return getEnumValues<EnumType>().size();\
     }
 
 /// Setting field for specifying user-defined timezone. It is basically a string, but it needs validation.

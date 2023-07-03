@@ -8,6 +8,7 @@ namespace
 {
 using namespace DB;
 using SettingMySQLDataTypesSupport = SettingFieldMultiEnum<MySQLDataTypesSupport, SettingFieldMySQLDataTypesSupportTraits>;
+using SettingJoinAlgorithm = SettingFieldMultiEnumOrdered<JoinAlgorithm, SettingJoinAlgorithmTraits>;
 }
 
 namespace DB
@@ -27,7 +28,7 @@ bool operator== (const Field & f, const SettingFieldMultiEnum<Enum, Traits> & se
 
 }
 
-GTEST_TEST(MySQLDataTypesSupport, WithDefault)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportWithDefault)
 {
     // Setting can be default-initialized and that means all values are unset.
     const SettingMySQLDataTypesSupport setting;
@@ -39,7 +40,7 @@ GTEST_TEST(MySQLDataTypesSupport, WithDefault)
     ASSERT_FALSE(setting.value.isSet(MySQLDataTypesSupport::DATETIME64));
 }
 
-GTEST_TEST(SettingMySQLDataTypesSupport, WithDECIMAL)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportWithDECIMAL)
 {
     // Setting can be initialized with MySQLDataTypesSupport::DECIMAL
     // and this value can be obtained in varios forms with getters.
@@ -53,7 +54,7 @@ GTEST_TEST(SettingMySQLDataTypesSupport, WithDECIMAL)
     ASSERT_EQ(Field("decimal"), setting);
 }
 
-GTEST_TEST(SettingMySQLDataTypesSupport, WithDATE)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportWithDATE)
 {
     SettingMySQLDataTypesSupport setting;
     setting = String("date2Date32");
@@ -76,7 +77,7 @@ GTEST_TEST(SettingMySQLDataTypesSupport, WithDATE)
     ASSERT_EQ(Field("date2String"), setting);
 }
 
-GTEST_TEST(SettingMySQLDataTypesSupport, With1)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportWith1)
 {
     // Setting can be initialized with int value corresponding to DECIMAL
     // and rest of the test is the same as for that value.
@@ -90,7 +91,7 @@ GTEST_TEST(SettingMySQLDataTypesSupport, With1)
     ASSERT_EQ(Field("decimal"), setting);
 }
 
-GTEST_TEST(SettingMySQLDataTypesSupport, WithMultipleValues)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportWithMultipleValues)
 {
     // Setting can be initialized with int value corresponding to (DECIMAL | DATETIME64)
     const SettingMySQLDataTypesSupport setting(3u);
@@ -103,7 +104,7 @@ GTEST_TEST(SettingMySQLDataTypesSupport, WithMultipleValues)
     ASSERT_EQ(Field("decimal,datetime64"), setting);
 }
 
-GTEST_TEST(SettingMySQLDataTypesSupport, SetString)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportSetString)
 {
     SettingMySQLDataTypesSupport setting;
     setting = String("decimal");
@@ -150,7 +151,7 @@ GTEST_TEST(SettingMySQLDataTypesSupport, SetString)
     ASSERT_EQ(Field(""), setting);
 }
 
-GTEST_TEST(SettingMySQLDataTypesSupport, SetInvalidString)
+GTEST_TEST(SettingFieldMultiEnum, MySQLDataTypesSupportSetInvalidString)
 {
     // Setting can be initialized with int value corresponding to (DECIMAL | DATETIME64)
     SettingMySQLDataTypesSupport setting;
@@ -167,3 +168,17 @@ GTEST_TEST(SettingMySQLDataTypesSupport, SetInvalidString)
     ASSERT_EQ(0, setting.value.getValue());
 }
 
+
+GTEST_TEST(SettingFieldMultiEnum, JoinAlgorithmOrdered)
+{
+    SettingJoinAlgorithm setting;
+    ASSERT_FALSE(setting.changed);
+
+    EXPECT_NO_THROW(setting = String("hash, auto, full_sorting_merge"));
+    ASSERT_TRUE(setting.changed);
+
+    ASSERT_EQ(3, setting.value.size());
+    ASSERT_EQ(JoinAlgorithm::HASH, setting.value[0]);
+    ASSERT_EQ(JoinAlgorithm::AUTO, setting.value[1]);
+    ASSERT_EQ(JoinAlgorithm::FULL_SORTING_MERGE, setting.value[2]);
+}

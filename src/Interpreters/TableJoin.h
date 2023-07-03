@@ -125,7 +125,7 @@ private:
     const size_t default_max_bytes = 0;
     const bool join_use_nulls = false;
     const size_t max_joined_block_rows = 0;
-    MultiEnum<JoinAlgorithm> join_algorithm = MultiEnum<JoinAlgorithm>(JoinAlgorithm::AUTO);
+    std::vector<JoinAlgorithm> join_algorithm;
     const size_t partial_merge_join_rows_in_right_blocks = 0;
     const size_t partial_merge_join_left_table_buffer_bytes = 0;
     const size_t max_files_to_merge = 0;
@@ -204,7 +204,7 @@ public:
         : size_limits(limits)
         , default_max_bytes(0)
         , join_use_nulls(use_nulls)
-        , join_algorithm(JoinAlgorithm::DEFAULT)
+        , join_algorithm{JoinAlgorithm::DEFAULT}
     {
         clauses.emplace_back().key_names_right = key_names_right;
         table_join.kind = kind;
@@ -226,9 +226,10 @@ public:
         bool is_enbaled_by_default = val == JoinAlgorithm::DEFAULT
                                   || val == JoinAlgorithm::HASH
                                   || val == JoinAlgorithm::DIRECT;
-        if (join_algorithm.isSet(JoinAlgorithm::DEFAULT) && is_enbaled_by_default)
+        if (is_enbaled_by_default && (join_algorithm.empty() || join_algorithm.front() == JoinAlgorithm::DEFAULT))
             return true;
-        return join_algorithm.isSet(val);
+
+        return std::find(join_algorithm.begin(), join_algorithm.end(), val) != join_algorithm.end();
     }
 
     bool allowParallelHashJoin() const;
