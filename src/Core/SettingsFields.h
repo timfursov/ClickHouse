@@ -618,14 +618,14 @@ void SettingFieldMultiEnumOrdered<EnumT, Traits>::readBinary(ReadBuffer & in)
 
 /// NOLINTNEXTLINE
 #define DECLARE_SETTING_MULTI_ENUM(ENUM_TYPE) \
-    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE, )
+    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE, MultiEnum)
 
 /// NOLINTNEXTLINE
 #define DECLARE_SETTING_MULTI_ENUM_ORDERED(ENUM_TYPE) \
-    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE, Ordered)
+    DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, ENUM_TYPE, MultiEnumOrdered)
 
 /// NOLINTNEXTLINE
-#define DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, NEW_NAME, IS_ORDERED) \
+#define DECLARE_SETTING_MULTI_ENUM_WITH_RENAME(ENUM_TYPE, NEW_NAME, ENUM_KIND) \
     struct SettingField##NEW_NAME##Traits \
     { \
         using EnumType = ENUM_TYPE; \
@@ -635,7 +635,7 @@ void SettingFieldMultiEnumOrdered<EnumT, Traits>::readBinary(ReadBuffer & in)
         static EnumType fromString(std::string_view str); \
     }; \
     \
-    using SettingField##NEW_NAME = SettingFieldMultiEnum##IS_ORDERED<ENUM_TYPE, SettingField##NEW_NAME##Traits>;
+    using SettingField##NEW_NAME = SettingField##ENUM_KIND<ENUM_TYPE, SettingField##NEW_NAME##Traits>;
 
 /// NOLINTNEXTLINE
 #define IMPLEMENT_SETTING_MULTI_ENUM(ENUM_TYPE, ERROR_CODE_FOR_UNEXPECTED_NAME, ...) \
