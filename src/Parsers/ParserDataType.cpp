@@ -64,15 +64,15 @@ bool ParserDataType::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
     /// only for certain first words, otherwise we don't know how many words to parse
     if (type_name_upper == "NATIONAL")
     {
-        if (ParserKeyword("CHARACTER LARGE OBJECT").ignore(pos))
+        if (ParserKeyword::createDeprecated("CHARACTER LARGE OBJECT").ignore(pos))
             type_name_suffix = "CHARACTER LARGE OBJECT";
-        else if (ParserKeyword("CHARACTER VARYING").ignore(pos))
+        else if (ParserKeyword::createDeprecated("CHARACTER VARYING").ignore(pos))
             type_name_suffix = "CHARACTER VARYING";
-        else if (ParserKeyword("CHAR VARYING").ignore(pos))
+        else if (ParserKeyword::createDeprecated("CHAR VARYING").ignore(pos))
             type_name_suffix = "CHAR VARYING";
-        else if (ParserKeyword("CHARACTER").ignore(pos))
+        else if (ParserKeyword::createDeprecated("CHARACTER").ignore(pos))
             type_name_suffix = "CHARACTER";
-        else if (ParserKeyword("CHAR").ignore(pos))
+        else if (ParserKeyword::createDeprecated("CHAR").ignore(pos))
             type_name_suffix = "CHAR";
     }
     else if (type_name_upper == "BINARY" ||
@@ -80,22 +80,22 @@ bool ParserDataType::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
              type_name_upper == "CHAR" ||
              type_name_upper == "NCHAR")
     {
-        if (ParserKeyword("LARGE OBJECT").ignore(pos))
+        if (ParserKeyword::createDeprecated("LARGE OBJECT").ignore(pos))
             type_name_suffix = "LARGE OBJECT";
-        else if (ParserKeyword("VARYING").ignore(pos))
+        else if (ParserKeyword::createDeprecated("VARYING").ignore(pos))
             type_name_suffix = "VARYING";
     }
     else if (type_name_upper == "DOUBLE")
     {
-        if (ParserKeyword("PRECISION").ignore(pos))
+        if (ParserKeyword::createDeprecated("PRECISION").ignore(pos))
             type_name_suffix = "PRECISION";
     }
     else if (type_name_upper.find("INT") != std::string::npos)
     {
         /// Support SIGNED and UNSIGNED integer type modifiers for compatibility with MySQL
-        if (ParserKeyword("SIGNED").ignore(pos))
+        if (ParserKeyword::createDeprecated("SIGNED").ignore(pos))
             type_name_suffix = "SIGNED";
-        else if (ParserKeyword("UNSIGNED").ignore(pos))
+        else if (ParserKeyword::createDeprecated("UNSIGNED").ignore(pos))
             type_name_suffix = "UNSIGNED";
         else if (pos->type == TokenType::OpeningRoundBracket)
         {
@@ -105,9 +105,9 @@ bool ParserDataType::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
             if (pos->type != TokenType::ClosingRoundBracket)
                return false;
             ++pos;
-            if (ParserKeyword("SIGNED").ignore(pos))
+            if (ParserKeyword::createDeprecated("SIGNED").ignore(pos))
                 type_name_suffix = "SIGNED";
-            else if (ParserKeyword("UNSIGNED").ignore(pos))
+            else if (ParserKeyword::createDeprecated("UNSIGNED").ignore(pos))
                 type_name_suffix = "UNSIGNED";
         }
 

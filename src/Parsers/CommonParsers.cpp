@@ -57,7 +57,7 @@ const String & toStringRef(Keyword type)
     return KeyWordToStringConverter::instance().convert(type);
 }
 
-const std::vector<String> & getAllKeyWords()
+const std::vector<String> & getAllKeywords()
 {
     return KeyWordToStringConverter::instance().getMapping();
 }
@@ -65,6 +65,11 @@ const std::vector<String> & getAllKeyWords()
 ParserKeyword::ParserKeyword(Keyword keyword)
     : s(toStringRef(keyword))
 {}
+
+std::shared_ptr<ParserKeyword> ParserKeyword::createDeprecatedPtr(std::string_view s_)
+{
+    return std::shared_ptr<ParserKeyword>(new ParserKeyword(s_));
+}
 
 bool ParserKeyword::parseImpl(Pos & pos, [[maybe_unused]] ASTPtr & node, Expected & expected)
 {

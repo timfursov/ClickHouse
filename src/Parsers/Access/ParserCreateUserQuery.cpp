@@ -267,7 +267,7 @@ namespace
     {
         return IParserBase::wrapParseImpl(pos, [&]
         {
-            if (!prefix.empty() && !ParserKeyword{prefix}.ignore(pos, expected))
+            if (!prefix.empty() && !ParserKeyword::createDeprecated(prefix).ignore(pos, expected))
                 return false;
 
             if (!ParserKeyword{Keyword::HOST}.ignore(pos, expected))

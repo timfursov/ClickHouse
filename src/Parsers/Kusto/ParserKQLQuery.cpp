@@ -162,7 +162,7 @@ bool ParserKQLQuery::parseImpl(Pos & pos, ASTPtr & node, Expected & expected)
             if (kql_operator == "order" || kql_operator == "sort")
             {
                 ++pos;
-                ParserKeyword s_by("by");
+                ParserKeyword s_by(Keyword::BY);
                 if (s_by.ignore(pos,expected))
                 {
                     kql_operator = "order by";

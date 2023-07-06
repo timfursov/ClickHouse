@@ -214,7 +214,7 @@ bool ParserSystemQuery::parseImpl(IParser::Pos & pos, ASTPtr & node, Expected & 
 
     for (const auto & type : magic_enum::enum_values<Type>())
     {
-        if (ParserKeyword{ASTSystemQuery::typeToString(type)}.ignore(pos, expected))
+        if (ParserKeyword::createDeprecated(ASTSystemQuery::typeToString(type)).ignore(pos, expected))
         {
             res->type = type;
             found = true;

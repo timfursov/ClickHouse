@@ -15,14 +15,10 @@ NamesAndTypesList StorageSystemKeywords::getNamesAndTypes()
     };
 }
 
-void StorageSystemKeywords::fillData(MutableColumns & res_columns, ContextPtr context, const SelectQueryInfo &) const
+void StorageSystemKeywords::fillData(MutableColumns & res_columns, ContextPtr, const SelectQueryInfo &) const
 {
-    auto macros = context->getMacros();
-
-    for (const auto & keyword : getAllKeyWords())
-    {
+    for (const auto & keyword : getAllKeywords())
         res_columns[0]->insert(keyword);
-    }
 }
 
 }
