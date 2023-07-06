@@ -24,9 +24,9 @@ namespace
             return mapping[static_cast<size_t>(type)];
         }
 
-        const std::vector<String> & getMapping() const
+        const std::unordered_set<String> & getSet() const
         {
-            return mapping;
+            return just_set;
         }
 
     private:
@@ -45,9 +45,11 @@ namespace
             size_t index = static_cast<size_t>(identifier);
             mapping.resize(std::max(index + 1, mapping.size()));
             mapping[index] = value;
+            just_set.emplace(value);
         }
 
         Strings mapping;
+        std::unordered_set<String> just_set;
     };
 }
 
@@ -57,9 +59,9 @@ const String & toStringRef(Keyword type)
     return KeyWordToStringConverter::instance().convert(type);
 }
 
-const std::vector<String> & getAllKeywords()
+const std::unordered_set<String> & getAllKeywords()
 {
-    return KeyWordToStringConverter::instance().getMapping();
+    return KeyWordToStringConverter::instance().getSet();
 }
 
 ParserKeyword::ParserKeyword(Keyword keyword)
